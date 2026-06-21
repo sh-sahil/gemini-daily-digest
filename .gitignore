@@ -1,0 +1,10 @@
+# Never commit real credentials
+deploy/config.sh
+
+# Build artifacts, generated locally / by CI
+deploy/function.zip
+deploy/schedule-target.json
+deploy/invoke-output.json
+
+__pycache__/
+*.pyc

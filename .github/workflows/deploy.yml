@@ -1,0 +1,44 @@
+name: Deploy Digest Mailer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "lambda/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch: {}   # lets you trigger it manually from the Actions tab too
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Package Lambda
+        run: |
+          cd lambda
+          zip -q ../function.zip digest_mailer.py
+
+      - name: Update Lambda code
+        run: |
+          aws lambda update-function-code \
+            --function-name gemini-daily-digest \
+            --zip-file fileb://function.zip
+          aws lambda wait function-updated --function-name gemini-daily-digest
+
+      - name: Sync GEMINI_API_KEY (only if it changed in GitHub Secrets)
+        run: |
+          SNS_TOPIC_ARN=$(aws sns list-topics \
+            --query "Topics[?contains(TopicArn, 'daily-digest-alerts')].TopicArn" \
+            --output text)
+          aws lambda update-function-configuration \
+            --function-name gemini-daily-digest \
+            --environment "Variables={GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},GEMINI_MODEL=gemini-2.5-flash,SNS_TOPIC_ARN=$SNS_TOPIC_ARN}"
