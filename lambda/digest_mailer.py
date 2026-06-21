@@ -24,7 +24,7 @@ import urllib.error
 from datetime import datetime, timezone
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")
 SNS_TOPIC_ARN = os.environ.get("SNS_TOPIC_ARN", "")
 AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
 
