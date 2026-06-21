@@ -42,3 +42,23 @@ jobs:
           aws lambda update-function-configuration \
             --function-name gemini-daily-digest \
             --environment "Variables={GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},GEMINI_MODEL=gemini-2.5-flash,SNS_TOPIC_ARN=$SNS_TOPIC_ARN}"
+
+      - name: Update schedule time
+        env:
+          SCHEDULE_EXPRESSION: ${{ vars.SCHEDULE_EXPRESSION }}
+        run: |
+          if [ -z "$SCHEDULE_EXPRESSION" ]; then
+            echo "No SCHEDULE_EXPRESSION repo variable set, skipping schedule update."
+            exit 0
+          fi
+          TARGET_JSON=$(aws scheduler get-schedule \
+            --name gemini-daily-digest-schedule \
+            --query "{RoleArn:Target.RoleArn, Arn:Target.Arn, Input:Target.Input}" \
+            --output json)
+          echo "$TARGET_JSON" > target.json
+          aws scheduler update-schedule \
+            --name gemini-daily-digest-schedule \
+            --schedule-expression "$SCHEDULE_EXPRESSION" \
+            --flexible-time-window '{"Mode": "OFF"}' \
+            --target "file://target.json"
+          echo "Schedule updated to: $SCHEDULE_EXPRESSION"

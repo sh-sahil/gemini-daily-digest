@@ -17,6 +17,21 @@
       "Effect": "Allow",
       "Action": "sns:ListTopics",
       "Resource": "*"
+    },
+    {
+      "Sid": "UpdateSchedule",
+      "Effect": "Allow",
+      "Action": [
+        "scheduler:GetSchedule",
+        "scheduler:UpdateSchedule"
+      ],
+      "Resource": "arn:aws:scheduler:us-east-1:181777503740:schedule/default/gemini-daily-digest-schedule"
+    },
+    {
+      "Sid": "PassSchedulerRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::181777503740:role/gemini-daily-digest-scheduler-role"
     }
   ]
 }
